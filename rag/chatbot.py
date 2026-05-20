@@ -21,7 +21,7 @@ vectorstore = FAISS.load_local(
 
 # Load Groq LLM
 llm = ChatGroq(
-    groq_api_key="groq_api_key",
+    groq_api_key=groq_api_key,
     model_name="llama-3.1-8b-instant"
 )
 
@@ -35,14 +35,26 @@ while True:
         break
 
     # Retrieve relevant chunks
-    docs = vectorstore.similarity_search(query, k=5)
+    category = input("Enter category (student/business/general): ")
+
+    docs = vectorstore.similarity_search(
+    query,
+    k=3,
+    filter={"category": category}
+    )
 
     context = "\n\n".join([doc.page_content for doc in docs])
 
     prompt = f"""
-You are a helpful government schemes assistant.
+You are a government schemes assistant.
 
-Answer ONLY using the provided context.
+Use ONLY the information provided in the context below.
+
+If the answer is not present in the context, reply:
+"I could not find this information in the provided documents."
+
+Do NOT use outside knowledge.
+Do NOT make up schemes or details.
 
 Context:
 {context}
@@ -58,3 +70,11 @@ Question:
 
     print("\nAnswer:\n")
     print(answer)
+    for doc in docs:
+        source = doc.metadata.get("source", "Unknown")
+        page = doc.metadata.get("page", "N/A")
+        category = doc.metadata.get("category", "N/A")
+        print(f"Source: {source}")
+        print(f"Page: {page}")
+        print(f"Category: {category}")
+        print("-" * 40)

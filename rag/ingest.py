@@ -8,26 +8,49 @@ documents = []
 
 data_path = "../data"
 
+# Load PDFs
 for file in os.listdir(data_path):
+
     if file.endswith(".pdf"):
+
         loader = PyPDFLoader(os.path.join(data_path, file))
-        documents.extend(loader.load())
+
+        docs = loader.load()
+
+        # Add metadata BEFORE chunking
+        for doc in docs:
+
+            source = doc.metadata.get("source", "").lower()
+
+            if "scholarship" in source:
+                doc.metadata["category"] = "student"
+
+            elif "mudra" in source:
+                doc.metadata["category"] = "business"
+
+            else:
+                doc.metadata["category"] = "general"
+
+        documents.extend(docs)
 
 print("Documents loaded:", len(documents))
 
+# Chunking
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=500,
-    chunk_overlap=50
+    chunk_size=1000,
+    chunk_overlap=100
 )
 
 chunks = text_splitter.split_documents(documents)
 
 print("Chunks created:", len(chunks))
 
+# Embeddings
 embeddings = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2"
 )
 
+# Create FAISS index
 vectorstore = FAISS.from_documents(chunks, embeddings)
 
 vectorstore.save_local("faiss_index")
