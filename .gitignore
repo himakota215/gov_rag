@@ -1,5 +1,6 @@
-venv/
-__pycache__/
-faiss_index/
-*.pyc
 .env
+faiss_index/
+chunks.json
+__pycache__/
+*.pyc
+data/*.pdf
