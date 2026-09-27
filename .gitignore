@@ -3,4 +3,4 @@ faiss_index/
 chunks.json
 __pycache__/
 *.pyc
-data/*.pdf
+data/*.pdfn
